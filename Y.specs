@@ -1,0 +1,37 @@
+# Y is a language that is solely based on Lambda calculus
+
+# Y is turing complete
+
+# A function in Y looks like this
+
+    (\x. x)
+
+The function here can be described as ID
+
+# Y supports one function that is not implemented in lambda calculus: print
+
+print((\x. x)(5))
+
+# It also supports numbers as church numerals would suck
+# Arguments are given to functions via a call that looks like so
+
+    (\x. x)(5)
+    would resolve to 5
+
+# Y also allows a replace macro. This lets you assign functions to a "variable"
+
+    $TRUE  (\a. b. a)
+    $FALSE (\a b. b)
+
+    $NOT (\x. x(FALSE)(TRUE))
+
+# should already support basic functions like +, -, *, / with syntax
+
+    (\x y. +(x y))(5, 5)
+    would return 10
+
+# TODO:
+    a flag to disable the "function -> solution" to just output "solution"
+    not all variables have to be resolved, otherwise Y is not turing complete
+    add variables (macros for replacing certain IDS with a functions ast)
+

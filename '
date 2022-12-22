@@ -1,0 +1,71 @@
+#include "include/lexer.hpp"
+
+using namespace std;
+using namespace lexer;
+
+Lexer::Lexer(string &text) {
+    this->text = text;
+    this->tokens = vector<token_t>();
+    this->advance();
+}
+
+void Lexer::advance() {
+    // going out of bounds
+    if ((this->pos+1) >= this->text.length()) {
+        this->current_char = LEOF;
+    } else {
+        this->current_char = this->text[++pos];
+    }
+}
+
+void Lexer::lex_num() {
+}
+
+void Lexer::lex_id() {
+}
+
+vector<token_t> Lexer::lex() {
+    while (current_char != LEOF) {
+        switch (current_char) {
+            case '\\':
+                {
+                    this->tokens.push_back( token_t{.type=LAMBDA, .string_data="\\"} );
+                }break;
+            case '.':
+                {
+                    this->tokens.push_back( token_t{.type=DOT, .string_data="."} );
+                }break;
+            case '$':
+                {
+                    this->tokens.push_back( token_t{.type=DOLLAR, .string_data="$"} );
+                }break;
+            case '=':
+                {
+                    this->tokens.push_back( token_t{.type=EQUAL, .string_data="="} );
+                }break;
+            case '(':
+                {
+                    this->tokens.push_back( token_t{.type=OPENING_PARENTHESIS, .string_data="("} );
+                }break;
+            case ')':
+                {
+                    this->tokens.push_back( token_t{.type=CLOSING_PARENTHESIS, .string_data=")"} );
+                }break;
+            default:
+                {
+                    // number
+                    if ('0' <= current_char && current_char <= '9') {
+                        this->lex_num();
+                    } else if (('a' <= current_char && current_char <= 'z') || ('A' <= current_char && current_char <= 'Z')) {
+                        this->lex_id();
+                    } else {
+                        // error
+                    }
+                }break;
+        }
+
+        this->advance();
+    }
+
+    return this->tokens;
+}
