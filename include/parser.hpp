@@ -20,7 +20,7 @@ namespace parser {
             vector<FunctionNode> applicatives;
     };
 
-    typedef vector<pair<string, FunctionNode> > function_macro_t;
+    typedef pair<string, FunctionNode> function_macro_t;
     /*class VariableNode {
         public:
             string name;
@@ -34,10 +34,12 @@ namespace parser {
             vector<Token> tokens;
             Token current_token;
             int pos = -1;
+            int current_line = 0;
             AST ast;
-            function_macro_t functions;
+            vector<function_macro_t> functions;
 
             Parser(vector<Token> p_tokens);
+            bool verify_line();
             void advance();
             AST parse(int delim=-1);
             pair<FunctionNode, vector<string> > parse_function(vector<string> prev_expected_args);

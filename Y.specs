@@ -31,7 +31,8 @@ print((\x. x)(5))
     would return 10
 
 # TODO:
-    a flag to disable the "function -> solution" to just output "solution"
-    not all variables have to be resolved, otherwise Y is not turing complete
-    add variables (macros for replacing certain IDS with a functions ast)
+    - Multiline files cause wrong output
+    - a flag to disable the "function -> solution" to just output "solution"
+    - not all variables have to be resolved, otherwise Y is not turing complete
+    - add variables (macros for replacing certain IDS with a functions ast)
 

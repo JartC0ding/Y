@@ -21,12 +21,13 @@ namespace lexer {
 
     class Token {
         public:
-            Token(int8_t t, string sd);
-            Token(int8_t t, int id);
+            Token(int8_t t, string sd, int ln);
+            Token(int8_t t, int id, int ln);
 
             int8_t type;
             string string_data;
             int int_data;
+            int line;
     };
 
     class Lexer {
@@ -38,6 +39,7 @@ namespace lexer {
             vector<Token> tokens;
             string text;
             int pos = -1;
+            int line = 0;
             char current_char = 0;
             
             void advance();

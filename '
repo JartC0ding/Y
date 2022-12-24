@@ -3,15 +3,13 @@
 using namespace interpreter;
 
 Interpreter::Interpreter(AST p_ast) {
-    results = vector<string>(p_ast.size());
     for (int i = 0; i < p_ast.size(); i++) {
-        this->current_idx = i;
         this->functions.push_back(this->draw_function(p_ast[i], applicative_variable_t(0)));
     }
 
-    for (int i = 0; i < p_ast.size(); i++) {
+    for (int i = 0; i < ast.size(); i++) {
         this->current_idx = i;
-        this->interpret_function(p_ast[i], applicative_variable_t(0));
+        this->interpret_function(ast[i], applicative_variable_t(0));
     }
 
     for (int i = 0; i < this->functions.size(); i++) {
@@ -84,12 +82,12 @@ FunctionNode Interpreter::interpret_function(FunctionNode f, applicative_variabl
         }
     }
     if (f.is_num) {
-        this->results[this->current_idx] = this->draw_function(f, vars);
+        this->results.insert(results.begin(), this->draw_function(f, vars));
         return f;
     }
 
     if (f.applicatives.size() == 0) {
-        this->results[this->current_idx] = this->draw_function(f, vars);
+        this->results.insert(results.begin(), this->draw_function(f, vars));
         return f;
     } else {
         // first try to replace vars in applicatives, if a applicative is a function that is not a constant, evaluate it

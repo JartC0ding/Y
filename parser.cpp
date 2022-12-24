@@ -5,7 +5,18 @@
 using namespace std;
 using namespace parser;
 
-Parser::Parser(vector<Token> p_tokens) : current_token(EOT, 0) {
+int find_func_macro(string n, vector<function_macro_t> f) {
+    for (int i = 0; i < f.size(); i++) {
+        if (!n.compare(f[i].first)) return i;
+    }
+    return -1;
+}
+
+bool Parser::verify_line() {
+    return this->current_line == this->current_token.line;
+}
+
+Parser::Parser(vector<Token> p_tokens) : current_token(EOT, 0, 0) {
     this->tokens = p_tokens;
     this->advance();
 }
@@ -13,7 +24,7 @@ Parser::Parser(vector<Token> p_tokens) : current_token(EOT, 0) {
 void Parser::advance() {
     this->pos++;
     if (this->pos >= this->tokens.size()) {
-        this->current_token = Token(EOT, 0);
+        this->current_token = Token(EOT, 0, 0);
     } else {
         this->current_token = this->tokens[this->pos];
     }
@@ -21,10 +32,72 @@ void Parser::advance() {
 
 AST Parser::parse(int delim) {
     while (current_token.type != EOT && current_token.type != delim) {
+        this->current_line = current_token.line;
         // has to start with a () for function. Each executed function will print it's result
         if (current_token.type == OPENING_PARENTHESIS) {
             advance();
             this->ast.push_back(parse_function(vector<string>(0)).first);
+        } else if (current_token.type == DOLLAR) {
+            // variable found
+            advance();
+            
+            if (current_token.type == ID && find_func_macro(current_token.string_data, this->functions) == -1) {
+                string name = current_token.string_data;
+                advance();
+
+                if (current_token.type == EQUAL) {
+                    advance();
+
+                    if (current_token.type == OPENING_PARENTHESIS && this->verify_line()) {
+                        advance();
+                        FunctionNode fn = parse_function(vector<string>(0)).first;
+
+                        this->functions.push_back(function_macro_t(name, fn));
+                    } else if (current_token.type == NUM) {
+                        FunctionNode fn;
+                        fn.is_num = true;
+                        fn.num = current_token.int_data;
+                        advance();
+
+                        this->functions.push_back(function_macro_t(name, fn));
+                    } else {
+                        cout << "Expected function in macro definition" << endl;
+                        abort();
+                    }
+                } else {
+                    cout << "Expected assignment" << endl;
+                    abort();
+                }
+            } else if (current_token.type == ID && find_func_macro(current_token.string_data, this->functions) != -1 && this->verify_line()) {
+                // a function exists
+                string name = current_token.string_data;
+                advance();
+
+                if (current_token.type == OPENING_PARENTHESIS && this->verify_line()) {
+                    // called
+                    advance();
+                    FunctionNode f = this->functions[find_func_macro(name, this->functions)].second;
+                    auto parse_ret = parse_second_class(CLOSING_PARENTHESIS, vector<string>(0)); 
+                    f.applicatives = parse_ret.first;
+                    advance();
+
+                    if (f.applicatives.size() < f.args.size()) {
+                        cout << "Too few arguments to consume" << endl;
+                        abort();
+                    } else if (f.applicatives.size() > f.args.size()) {
+                        cout << "Too many arguments to consume" << endl;
+                        abort();
+                    }
+                   
+                    this->ast.push_back(f);
+                } else {
+                    // just referenced
+                    this->ast.push_back(this->functions[find_func_macro(name, this->functions)].second);
+                }
+            } else {
+                cout << "Expected macro name" << endl;
+                abort();
+            }
         } else {
             cout << "Expected a parenthesis as start of lambda function" << endl;
             abort();
@@ -67,6 +140,40 @@ pair<vector<FunctionNode>, vector<string> > Parser::parse_second_class(int delim
             this->advance();
             f.push_back(ff);
             vars.push_back(ff.var_name);
+        } else if (current_token.type == DOLLAR) {
+            // variable
+            advance();
+            if (current_token.type == ID && find_func_macro(current_token.string_data, this->functions) != -1) {
+                // a function exists
+                string name = current_token.string_data;
+                advance();
+
+                if (current_token.type == OPENING_PARENTHESIS && this->verify_line()) {
+                    // called
+                    advance();
+                    FunctionNode ff = this->functions[find_func_macro(name, this->functions)].second;
+                    auto parse_ret = parse_second_class(CLOSING_PARENTHESIS, vector<string>(0)); 
+                    ff.applicatives = parse_ret.first;
+                    advance();
+
+                    if (ff.applicatives.size() < ff.args.size()) {
+                        cout << "Too few arguments to consume" << endl;
+                        abort();
+                    } else if (ff.applicatives.size() > ff.args.size()) {
+                        cout << "Too many arguments to consume" << endl;
+                        abort();
+                    }
+                   
+                    f.push_back(ff);
+                } else {
+                    // just referenced
+                    f.push_back(this->functions[find_func_macro(name, this->functions)].second);
+                }
+            } else {
+                cout << "Expected valid macro name" << endl;
+                abort();
+            }
+
         } else {
             cout << "Expected a function or church numeral" << endl;
             abort();
@@ -118,7 +225,7 @@ pair<FunctionNode, vector<string> > Parser::parse_function(vector<string> prev_e
             abort();
         }
         // parse args
-        if (current_token.type == OPENING_PARENTHESIS) {
+        if (current_token.type == OPENING_PARENTHESIS && this->verify_line()) {
             advance();
             auto parse_ret = parse_second_class(CLOSING_PARENTHESIS, prev_expected_args); 
             f.applicatives = parse_ret.first;

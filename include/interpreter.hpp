@@ -18,6 +18,7 @@ namespace interpreter {
         private:
             vector<string> functions;
             vector<string> results;
+            int current_idx;
 
             void exec(AST ast, applicative_variable_t vars);
             FunctionNode interpret_function(FunctionNode f, applicative_variable_t vars);

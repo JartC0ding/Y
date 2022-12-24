@@ -4,16 +4,18 @@
 using namespace std;
 using namespace lexer;
 
-Token::Token(int8_t t, string sd) {
+Token::Token(int8_t t, string sd, int ln) {
     this->type = t;
     this->string_data = sd;
     this->int_data = 0;
+    this->line = ln;
 }
 
-Token::Token(int8_t t, int id) {
+Token::Token(int8_t t, int id, int ln) {
     this->type = t;
     this->string_data = " ";
     this->int_data = id;
+    this->line = ln;
 }
 
 Lexer::Lexer(string &text) {
@@ -38,7 +40,7 @@ void Lexer::lex_num() {
         this->advance();
     }
 
-    tokens.push_back( Token(NUM, stoi(i)) );
+    tokens.push_back( Token(NUM, stoi(i), this->line) );
     current_char = this->text[--this->pos];
 }
 
@@ -49,7 +51,7 @@ void Lexer::lex_id() {
         advance();
     }
 
-    tokens.push_back( Token(ID, i) );
+    tokens.push_back( Token(ID, i, this->line) );
     current_char = this->text[--this->pos];
 }
 
@@ -58,7 +60,10 @@ vector<Token> Lexer::lex() {
        switch (current_char) {
             case ' ':  break;
             case '\t': break;
-            case '\n': break;
+            case '\n':
+                {
+                    this->line++;
+                }break;
             case '/':
                 {
                     advance();
@@ -72,27 +77,27 @@ vector<Token> Lexer::lex() {
                 }break;
             case '\\':
                 {
-                    tokens.push_back( Token(LAMBDA, "\\") );
+                    tokens.push_back( Token(LAMBDA, "\\", this->line) );
                 }break;
             case '.':
                 {
-                    tokens.push_back( Token(DOT, ".") );
+                    tokens.push_back( Token(DOT, ".", this->line) );
                 }break;
             case '$':
                 {
-                    tokens.push_back( Token(DOLLAR, "$") );
+                    tokens.push_back( Token(DOLLAR, "$", this->line) );
                 }break;
             case '=':
                 {
-                    tokens.push_back( Token(EQUAL, "=") );
+                    tokens.push_back( Token(EQUAL, "=", this->line) );
                 }break;
             case '(':
                 {
-                    tokens.push_back( Token(OPENING_PARENTHESIS, "(") );
+                    tokens.push_back( Token(OPENING_PARENTHESIS, "(", this->line) );
                 }break;
             case ')':
                 {
-                    tokens.push_back( Token(CLOSING_PARENTHESIS, ")") );
+                    tokens.push_back( Token(CLOSING_PARENTHESIS, ")", this->line) );
                 }break;
             default:
                 {
