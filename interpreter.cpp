@@ -11,6 +11,7 @@ Interpreter::Interpreter(AST p_ast) {
 
     for (int i = 0; i < p_ast.size(); i++) {
         this->current_idx = i;
+        this->depth = 0;
         this->interpret_function(p_ast[i], applicative_variable_t(0));
     }
 
@@ -48,26 +49,23 @@ string Interpreter::draw_function(FunctionNode f, applicative_variable_t vars) {
     for (auto j : f.args) {
         i += j + " ";
     }
-    //i.erase(i.end());
-    if (f.args.size() > 0) {
-        i[i.size()-1] = '.';
-        i += " ";
-    } else {
-        i += ". ";
-    }
+    i.erase(i.end()-1);
+    i+=". ";
 
     for (auto j : f.body) {
-        i += this->draw_function(this->interpret_function(j, vars), vars);
+        i += this->draw_function(this->interpret_function(j, vars), vars) + " ";
     }
+    i.erase(i.end()-1);
     i += ")";
 
     if (f.applicatives.size() > 0) {
         i += "(";
 
         for (auto j : f.applicatives) {
-            i += this->draw_function(this->interpret_function(j, vars), vars);
+            i += this->draw_function(this->interpret_function(j, vars), vars) + " ";
         }
 
+        i.erase(i.end()-1);
         i += ")";
     }
 
@@ -78,7 +76,16 @@ FunctionNode Interpreter::interpret_function(FunctionNode f, applicative_variabl
     // draw if no application has to be done
     if (f.is_var) {
         if (find_var(f.var_name, vars) != -1) {
-            return vars[find_var(f.var_name, vars)].second;
+            auto v = vars[find_var(f.var_name, vars)].second;
+            
+            // solution is validated by searching for higher predecence
+            try {
+                stoi(this->results[current_idx]);
+            } catch (exception e) {
+                this->results[this->current_idx] = draw_function(v, vars); // fucks with actual results
+            }
+            
+            return v;
         } else {
             return f;
         }

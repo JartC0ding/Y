@@ -220,10 +220,6 @@ pair<FunctionNode, vector<string> > Parser::parse_function(vector<string> prev_e
             }
         }
 
-        if (cnt < f.args.size()) {
-            cout << "Unconsumed arguments! (" << f.args.size() - cnt << ")" << endl;
-            abort();
-        }
         // parse args
         if (current_token.type == OPENING_PARENTHESIS && this->verify_line()) {
             advance();

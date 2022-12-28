@@ -1,5 +1,5 @@
 CC = clang++
-CFLAGS = -Wall -Iinclude -g
+CFLAGS = -std=c++11 -Wall -Iinclude -g
 
 OBJS = $(patsubst %.cpp,%.o,$(wildcard *.cpp))
 
